@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Annotation Tool</title>
+    <style>
+        /* Add your CSS styles here */
+        #categoryTree {
+            padding-left: 20px;
+        }
+        .category-checkbox {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text Annotation Tool</h1>
+    <form id="annotationForm">
+        <textarea name="text" placeholder="Enter your text here"></textarea>
+        <select name="sentiment">
+            <option value="Positive">Positive</option>
+            <option value="Neutral">Neutral</option>
+            <option value="Negative">Negative</option>
+        </select>
+        <h2>Select Categories:</h2>
+        <div id="categoryTree">
+            <!-- The category tree checkboxes will be dynamically generated here -->
+        </div>
+        <button type="submit">Annotate</button>
+    </form>
+    <script>
+        // Your category tree data
+        const categoryTree = {
+            "Structure": {
+                "Topics": ["Relevant", "Irrelevant", "Obsolete"],
+                "Organization": null,
+                "Order of Topics": null,
+                "Difficulty": null,
+                "Workload": null,
+            },
+            "Evaluation": {
+                "Grading Criteria": ["Assignment", "Quiz", "Midsem/Endsem", "Project", "Presentation", "Labs/Tutorial/Worksheet"],
+                "Correctness in Evaluation": ["Fairness", "Biasness", "Transparency"],
+                "Solutions": ["Timings of Upload", "Correctness", "Explanation"],
+                "Quality of Questions": ["Correctness & Soundness", "Difficulty", "Relevance with Lecture"],
+            },
+            "Course Material": {
+                "Lecture Slides": {
+                    "Quality": ["Understandability", "Clarity", "Organization", "Presentation"],
+                    "Timings of Upload": null,
+                    "Relevance": ["Coverage of Topics", "Relation with Lecture"],
+                },
+                "Labs/Tutorial/Assignment Questions": {
+                    "Relevance": null,
+                    "Quality": ["Pace", "Difficulty"],
+                },
+                "Extra Material": ["Reference Material", "Practice Sets", "Previous Year Question Papers"],
+            },
+            "Lecture Delivery": {
+                "Teaching Assistants (TAs)": {
+                    "Punctuality": null,
+                    "Pedagogical Skills": {
+                        "Effectiveness": null,
+                        "Granularity of Teaching": ["High", "Medium", "Fine"],
+                        "Subject Knowledge": null,
+                        "Personal Skills": ["Traits", "Voice", "Language"],
+                        "Interactiveness": ["Approachability", "Peer Engagement"],
+                    },
+                },
+                "Professor": {
+                    "Punctuality": null,
+                    "Pace": null,
+                    "Topics Covered": null,
+                    "Pedagogical Skills": {
+                        "Effectiveness": null,
+                        "Granularity of Teaching": ["High", "Medium", "Fine"],
+                        "Subject Knowledge": null,
+                        "Personal Skills": ["Traits", "Voice", "Language"],
+                        "Interactiveness": ["Approachability", "Peer Engagement"],
+                    },
+                },
+            },
+            "General": {
+                "Suggestions": {
+                    "Course Material": null,
+                    "Evaluation": null,
+                    "Lecture": null,
+                    "Structure": null,
+                },
+                "Everything": null,
+                "Nothing": null,
+            },
+        };
+
+        // Function to generate the category tree checkboxes
+        function generateCategoryCheckboxes(categoryTree, parent) {
+            const div = document.createElement("div");
+            for (const category in categoryTree) {
+                const label = document.createElement("label");
+                label.className = "category-checkbox";
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.name = "categories[]";
+                checkbox.value = category;
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(category));
+                div.appendChild(label);
+
+                if (categoryTree[category]) {
+                    div.appendChild(generateCategoryCheckboxes(categoryTree[category], category));
+                }
+            }
+            return div;
+        }
+
+        // Initialize the category tree checkboxes
+        document.getElementById("categoryTree").appendChild(generateCategoryCheckboxes(categoryTree, ""));
+
+        // Handle form submission
+        document.getElementById("annotationForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/annotate', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Annotation saved successfully!');
+                        // Clear the form or take any other actions you need
+                    }
+                })
+                .catch(error => {
+                    console.error('An error occurred:', error);
+                });
+        });
+    </script>
+</body>
+</html>
