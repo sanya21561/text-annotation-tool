@@ -16,13 +16,33 @@
             padding: 10px;
         }
 
-        #inputHeading {
+        #inputSentence {
             padding: 5px;
-            width: 200px;
-            margin-right: 10px;
+            width: 400px;
         }
 
-        #updateJson {
+        #textPathPairs {
+            margin-top: 10px;
+        }
+
+        .textPathPair {
+            display: flex;
+            margin-bottom: 5px;
+        }
+
+        .textInput {
+            padding: 5px;
+        }
+
+        .pathSelect {
+            width: 300px;
+        }
+
+        .sentimentSelect {
+            width: 100px;
+        }
+
+        #addTextPathPair {
             padding: 5px 10px;
             background-color: #0074D9;
             color: white;
@@ -30,14 +50,18 @@
             cursor: pointer;
         }
 
-        #updateJson:hover {
+        #addTextPathPair:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
 <body>
     <div id="categoryTree"></div>
-    <input type="text" id="inputHeading" placeholder="Enter Heading">
+    <input type="text" id="inputSentence" placeholder="Enter Sentence">
+    <div id="textPathPairs">
+        <!-- Text-Path-Sentiment Pairs will be added here -->
+    </div>
+    <button id="addTextPathPair">Add Text</button>
     <button id="updateJson">Save</button>
 
     <script>
@@ -264,6 +288,57 @@
     }
 ];
 
+        function createTextPathSentimentPair() {
+            const textPathSentimentPair = document.createElement("div");
+            textPathSentimentPair.className = "textPathPair";
+
+            const textInput = document.createElement("input");
+            textInput.className = "textInput";
+            textInput.placeholder = "Enter Text";
+
+            const pathSelect = document.createElement("select");
+            pathSelect.className = "pathSelect";
+
+            // Call the function to populate the dropdown with all levels, including leaf nodes
+            populateDropdown(pathSelect, categoryTree);
+
+            const sentimentSelect = document.createElement("select");
+            sentimentSelect.className = "sentimentSelect";
+            const sentimentOptions = ["positive", "negative", "suggestions"];
+
+            // Populate the sentimentSelect dropdown with sentiment options
+            for (const sentiment of sentimentOptions) {
+                const option = document.createElement("option");
+                option.value = sentiment;
+                option.text = sentiment;
+                sentimentSelect.appendChild(option);
+            }
+
+            textPathSentimentPair.appendChild(textInput);
+            textPathSentimentPair.appendChild(pathSelect);
+            textPathSentimentPair.appendChild(sentimentSelect);
+
+            document.getElementById("textPathPairs").appendChild(textPathSentimentPair);
+        }
+
+        function populateDropdown(select, data, parentPath = []) {
+            for (const item of data) {
+                const currentPath = [...parentPath, item.text];
+                if (item.text) {
+                    const option = document.createElement("option");
+                    option.value = currentPath.join('/');
+                    option.text = currentPath[currentPath.length - 1]; // Display the current node's name
+                    select.appendChild(option);
+                }
+                if (item.children) {
+                    populateDropdown(select, item.children, currentPath);
+                }
+            }
+        }
+
+        // Call the createTextPathSentimentPair function to initialize the form
+        createTextPathSentimentPair();
+
         $(function () {
             $('#categoryTree').jstree({
                 'core': {
@@ -275,16 +350,35 @@
                 console.log('Selected Node: ' + selectedNode.text);
             });
 
-            $('#updateJson').on('click', function () {
-                const selectedNode = $('#categoryTree').jstree('get_selected')[0];
-                const heading = $('#inputHeading').val();
-                const pathToSelectedNode = $('#categoryTree').jstree('get_path', selectedNode, '/');
+            $('#addTextPathPair').on('click', function () {
+                createTextPathSentimentPair();
+            });
 
-                // Send a request to the server to save the heading and path
+            $('#updateJson').on('click', function () {
+                const sentence = $('#inputSentence').val();
+                const textPathSentimentPairs = [];
+
+                // Iterate through textPathSentimentPairs and add them to the array
+                $('.textPathPair').each(function () {
+                    const text = $(this).find('.textInput').val();
+                    const path = $(this).find('.pathSelect').val();
+                    const sentiment = $(this).find('.sentimentSelect').val();
+
+                    textPathSentimentPairs.push({
+                        text: text,
+                        path: path,
+                        sentiment: sentiment
+                    });
+                });
+
+                // Send a request to the server to save the data
                 $.ajax({
                     type: 'POST',
-                    url: '/save_path',
-                    data: JSON.stringify({ heading: heading, path: pathToSelectedNode }),
+                    url: '/save_data',
+                    data: JSON.stringify({
+                        sentence: sentence,
+                        texts: textPathSentimentPairs
+                    }),
                     contentType: 'application/json',
                     success: function(response) {
                         alert('Data saved successfully');
