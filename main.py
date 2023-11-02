@@ -7,12 +7,13 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/save_path', methods=['POST'])
-def save_path():
+@app.route('/save_data', methods=['POST'])
+def save_data():
     data = request.get_json()
-    heading = data.get('heading')
-    path = data.get('path')
+    sentence = data.get('sentence')
+    texts = data.get('texts')
 
+    # Load the existing JSON data (if any)
     existing_data = {}
     try:
         with open('data.json', 'r') as json_file:
@@ -20,15 +21,15 @@ def save_path():
     except FileNotFoundError:
         pass
 
-    # Create a new structure with the input text, category, and subcategories
+    # Create a new structure with the sentence and associated text-path pairs
     new_entry = {
-        "heading": heading,
-        "category": path
+        "sentence": sentence,
+        "texts": texts
     }
 
     # Append the new entry to the existing data
-    existing_data['data'] = existing_data.get('data', [])
-    existing_data['data'].append(new_entry)
+    existing_data['sentences'] = existing_data.get('sentences', [])
+    existing_data['sentences'].append(new_entry)
 
     # Save the updated data to the JSON file
     with open('data.json', 'w') as json_file:
