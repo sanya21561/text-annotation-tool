@@ -10,25 +10,31 @@ def index():
 @app.route('/save_path', methods=['POST'])
 def save_path():
     data = request.get_json()
+    heading = data.get('heading')
     path = data.get('path')
 
-    # Load the existing JSON data (if any)
     existing_data = {}
     try:
-        with open('paths.json', 'r') as json_file:
+        with open('data.json', 'r') as json_file:
             existing_data = json.load(json_file)
     except FileNotFoundError:
         pass
 
-    # Append the new path to the existing data
-    existing_data['paths'] = existing_data.get('paths', [])
-    existing_data['paths'].append(path)
+    # Create a new structure with the input text, category, and subcategories
+    new_entry = {
+        "heading": heading,
+        "category": path
+    }
+
+    # Append the new entry to the existing data
+    existing_data['data'] = existing_data.get('data', [])
+    existing_data['data'].append(new_entry)
 
     # Save the updated data to the JSON file
-    with open('paths.json', 'w') as json_file:
+    with open('data.json', 'w') as json_file:
         json.dump(existing_data, json_file, indent=4)
 
-    return jsonify({'message': 'Path saved successfully'})
+    return jsonify({'message': 'Data saved successfully'})
 
 if __name__ == '__main__':
     app.run(debug=True)
