@@ -1,140 +1,265 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Text Annotation Tool</title>
-    <style>
-        /* Add your CSS styles here */
-        #categoryTree {
-            padding-left: 20px;
-        }
-        .category-checkbox {
-            margin-left: 20px;
-        }
-    </style>
+    <title>Dynamic Tree</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.10/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.10/jstree.min.js"></script>
 </head>
 <body>
-    <h1>Text Annotation Tool</h1>
-    <form id="annotationForm">
-        <textarea name="text" placeholder="Enter your text here"></textarea>
-        <select name="sentiment">
-            <option value="Positive">Positive</option>
-            <option value="Neutral">Neutral</option>
-            <option value="Negative">Negative</option>
-        </select>
-        <h2>Select Categories:</h2>
-        <div id="categoryTree">
-            <!-- The category tree checkboxes will be dynamically generated here -->
-        </div>
-        <button type="submit">Annotate</button>
-    </form>
+    <div id="categoryTree"></div>
+    <button id="savePath">Save Path</button>
+
     <script>
-        // Your category tree data
-        const categoryTree = {
-            "Structure": {
-                "Topics": ["Relevant", "Irrelevant", "Obsolete"],
-                "Organization": null,
-                "Order of Topics": null,
-                "Difficulty": null,
-                "Workload": null,
+        const categoryTree = [
+    {
+        "text": "Structure",
+        "children": [
+            {
+                "text": "Topics",
+                "children": [
+                    "Relevant",
+                    "Irrelevant",
+                    "Obsolete"
+                ]
             },
-            "Evaluation": {
-                "Grading Criteria": ["Assignment", "Quiz", "Midsem/Endsem", "Project", "Presentation", "Labs/Tutorial/Worksheet"],
-                "Correctness in Evaluation": ["Fairness", "Biasness", "Transparency"],
-                "Solutions": ["Timings of Upload", "Correctness", "Explanation"],
-                "Quality of Questions": ["Correctness & Soundness", "Difficulty", "Relevance with Lecture"],
+            {
+                "text": "Organization",
+                "children": []
             },
-            "Course Material": {
-                "Lecture Slides": {
-                    "Quality": ["Understandability", "Clarity", "Organization", "Presentation"],
-                    "Timings of Upload": null,
-                    "Relevance": ["Coverage of Topics", "Relation with Lecture"],
-                },
-                "Labs/Tutorial/Assignment Questions": {
-                    "Relevance": null,
-                    "Quality": ["Pace", "Difficulty"],
-                },
-                "Extra Material": ["Reference Material", "Practice Sets", "Previous Year Question Papers"],
+            {
+                "text": "Order of Topics",
+                "children": []
             },
-            "Lecture Delivery": {
-                "Teaching Assistants (TAs)": {
-                    "Punctuality": null,
-                    "Pedagogical Skills": {
-                        "Effectiveness": null,
-                        "Granularity of Teaching": ["High", "Medium", "Fine"],
-                        "Subject Knowledge": null,
-                        "Personal Skills": ["Traits", "Voice", "Language"],
-                        "Interactiveness": ["Approachability", "Peer Engagement"],
-                    },
-                },
-                "Professor": {
-                    "Punctuality": null,
-                    "Pace": null,
-                    "Topics Covered": null,
-                    "Pedagogical Skills": {
-                        "Effectiveness": null,
-                        "Granularity of Teaching": ["High", "Medium", "Fine"],
-                        "Subject Knowledge": null,
-                        "Personal Skills": ["Traits", "Voice", "Language"],
-                        "Interactiveness": ["Approachability", "Peer Engagement"],
-                    },
-                },
+            {
+                "text": "Difficulty",
+                "children": []
             },
-            "General": {
-                "Suggestions": {
-                    "Course Material": null,
-                    "Evaluation": null,
-                    "Lecture": null,
-                    "Structure": null,
-                },
-                "Everything": null,
-                "Nothing": null,
-            },
-        };
-
-        // Function to generate the category tree checkboxes
-        function generateCategoryCheckboxes(categoryTree, parent) {
-            const div = document.createElement("div");
-            for (const category in categoryTree) {
-                const label = document.createElement("label");
-                label.className = "category-checkbox";
-                const checkbox = document.createElement("input");
-                checkbox.type = "checkbox";
-                checkbox.name = "categories[]";
-                checkbox.value = category;
-                label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(category));
-                div.appendChild(label);
-
-                if (categoryTree[category]) {
-                    div.appendChild(generateCategoryCheckboxes(categoryTree[category], category));
-                }
+            {
+                "text": "Workload",
+                "children": []
             }
-            return div;
-        }
-
-        // Initialize the category tree checkboxes
-        document.getElementById("categoryTree").appendChild(generateCategoryCheckboxes(categoryTree, ""));
-
-        // Handle form submission
-        document.getElementById("annotationForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            const formData = new FormData(this);
-
-            fetch('/annotate', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Annotation saved successfully!');
-                        // Clear the form or take any other actions you need
+        ]
+    },
+    {
+        "text": "Evaluation",
+        "children": [
+            {
+                "text": "Grading Criteria",
+                "children": [
+                    "Assignment",
+                    "Quiz",
+                    "Midsem/Endsem",
+                    "Project",
+                    "Presentation",
+                    "Labs/Tutorial/Worksheet"
+                ]
+            },
+            {
+                "text": "Correctness in Evaluation",
+                "children": [
+                    "Fairness",
+                    "Biasness",
+                    "Transparency"
+                ]
+            },
+            {
+                "text": "Solutions",
+                "children": [
+                    "Timings of Upload",
+                    "Correctness",
+                    "Explanation"
+                ]
+            },
+            {
+                "text": "Quality of Questions",
+                "children": [
+                    "Correctness & Soundness",
+                    "Difficulty",
+                    "Relevance with Lecture"
+                ]
+            }
+        ]
+    },
+    {
+        "text": "Course Material",
+        "children": [
+            {
+                "text": "Lecture Slides",
+                "children": [
+                    {
+                        "text": "Quality",
+                        "children": [
+                            "Understandability",
+                            "Clarity",
+                            "Organization",
+                            "Presentation"
+                        ]
+                    },
+                    {
+                        "text": "Timings of Upload",
+                        "children": []
+                    },
+                    {
+                        "text": "Relevance",
+                        "children": [
+                            "Coverage of Topics",
+                            "Relation with Lecture"
+                        ]
                     }
-                })
-                .catch(error => {
-                    console.error('An error occurred:', error);
+                ]
+            },
+            {
+                "text": "Labs/Tutorial/Assignment Questions",
+                "children": [
+                    {
+                        "text": "Relevance",
+                        "children": []
+                    },
+                    {
+                        "text": "Quality",
+                        "children": [
+                            "Pace",
+                            "Difficulty"
+                        ]
+                    }
+                ]
+            },
+            {
+                "text": "Extra Material",
+                "children": [
+                    "Reference Material",
+                    "Practice Sets",
+                    "Previous Year Question Papers"
+                ]
+            }
+        ]
+    },
+    {
+        "text": "Lecture Delivery",
+        "children": [
+            {
+                "text": "Teaching Assistants (TAs)",
+                "children": [
+                    {
+                        "text": "Punctuality",
+                        "children": []
+                    },
+                    {
+                        "text": "Pedagogical Skills",
+                        "children": [
+                            "Effectiveness",
+                            {
+                                "text": "Granularity of Teaching",
+                                "children": ["High", "Medium", "Fine"]
+                            },
+                            "Subject Knowledge",
+                            {
+                                "text": "Personal Skills",
+                                "children": ["Traits", "Voice", "Language"]
+                            },
+                            {
+                                "text": "Interactiveness",
+                                "children": ["Approachability", "Peer Engagement"]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "text": "Professor",
+                "children": [
+                    {
+                        "text": "Punctuality",
+                        "children": []
+                    },
+                    {
+                        "text": "Pace",
+                        "children": []
+                    },
+                    {
+                        "text": "Topics Covered",
+                        "children": []
+                    },
+                    {
+                        "text": "Pedagogical Skills",
+                        "children": [
+                            "Effectiveness",
+                            {
+                                "text": "Granularity of Teaching",
+                                "children": ["High", "Medium", "Fine"]
+                            },
+                            "Subject Knowledge",
+                            {
+                                "text": "Personal Skills",
+                                "children": ["Traits", "Voice", "Language"]
+                            },
+                            {
+                                "text": "Interactiveness",
+                                "children": ["Approachability", "Peer Engagement"]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "text": "General",
+        "children": [
+            {
+                "text": "Suggestions",
+                "children": [
+                    {
+                        "text": "Course Material",
+                        "children": []
+                    },
+                    {
+                        "text": "Evaluation",
+                        "children": []
+                    },
+                    {
+                        "text": "Lecture",
+                        "children": []
+                    },
+                    {
+                        "text": "Structure",
+                        "children": []
+                    }
+                ]
+            },
+            "Everything",
+            "Nothing"
+        ]
+    }
+];
+
+        $(function () {
+            $('#categoryTree').jstree({
+                'core': {
+                    'data': categoryTree
+                }
+            }).on('changed.jstree', function (e, data) {
+                // Handle node selection here
+                var selectedNode = data.instance.get_node(data.selected[0]);
+                console.log('Selected Node: ' + selectedNode.text);
+            });
+
+            $('#savePath').on('click', function () {
+                const selectedNode = $('#categoryTree').jstree('get_selected')[0];
+                const pathToSelectedNode = $('#categoryTree').jstree('get_path', selectedNode, '/');
+
+                // Send a request to the server to save the path
+                $.ajax({
+                    type: 'POST',
+                    url: '/save_path',
+                    data: JSON.stringify({ path: pathToSelectedNode }),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        alert('Path saved successfully');
+                    }
                 });
+            });
         });
     </script>
 </body>
