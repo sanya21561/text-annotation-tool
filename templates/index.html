@@ -5,10 +5,40 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.10/themes/default/style.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.10/jstree.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #categoryTree {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        #inputHeading {
+            padding: 5px;
+            width: 200px;
+            margin-right: 10px;
+        }
+
+        #updateJson {
+            padding: 5px 10px;
+            background-color: #0074D9;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #updateJson:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <div id="categoryTree"></div>
-    <button id="savePath">Save Path</button>
+    <input type="text" id="inputHeading" placeholder="Enter Heading">
+    <button id="updateJson">Save</button>
 
     <script>
         const categoryTree = [
@@ -245,18 +275,19 @@
                 console.log('Selected Node: ' + selectedNode.text);
             });
 
-            $('#savePath').on('click', function () {
+            $('#updateJson').on('click', function () {
                 const selectedNode = $('#categoryTree').jstree('get_selected')[0];
+                const heading = $('#inputHeading').val();
                 const pathToSelectedNode = $('#categoryTree').jstree('get_path', selectedNode, '/');
 
-                // Send a request to the server to save the path
+                // Send a request to the server to save the heading and path
                 $.ajax({
                     type: 'POST',
                     url: '/save_path',
-                    data: JSON.stringify({ path: pathToSelectedNode }),
+                    data: JSON.stringify({ heading: heading, path: pathToSelectedNode }),
                     contentType: 'application/json',
                     success: function(response) {
-                        alert('Path saved successfully');
+                        alert('Data saved successfully');
                     }
                 });
             });
