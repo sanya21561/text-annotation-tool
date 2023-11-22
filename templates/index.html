@@ -34,8 +34,9 @@
             padding: 5px;
         }
 
-        .pathSelect {
+        .categoryInput {
             width: 300px;
+            margin-right: 10px;
         }
 
         .sentimentRadio {
@@ -315,6 +316,8 @@
     }
 ];
 
+        let currentCategoryInput; // Variable to store the current category input element
+
         function annotateSelectedText() {
             const selectedText = window.getSelection().toString().trim();
             if (selectedText !== "") {
@@ -322,13 +325,16 @@
                 textInput.className = "textInput";
                 textInput.value = selectedText;
 
-                const pathSelect = document.createElement("select");
-                pathSelect.className = "pathSelect";
-                populateDropdown(pathSelect, categoryTree);
+                const categoryId = "categoryInput_" + Date.now(); // Unique ID for categoryInput
+                const categoryInput = document.createElement("input");
+                categoryInput.className = "categoryInput";
+                categoryInput.id = categoryId;
+                categoryInput.placeholder = "Select Category from Tree";
+                categoryInput.setAttribute("data-path", ""); // Initialize data-path attribute
 
-                const positiveRadio = createSentimentRadio("positive");
-                const negativeRadio = createSentimentRadio("negative");
-                const suggestionsRadio = createSentimentRadio("suggestions");
+                const positiveRadio = createSentimentRadio("positive", categoryId);
+                const negativeRadio = createSentimentRadio("negative", categoryId);
+                const suggestionsRadio = createSentimentRadio("suggestions", categoryId);
 
                 const deleteButton = document.createElement("button");
                 deleteButton.className = "deleteButton";
@@ -341,7 +347,7 @@
                 const textPathSentimentPair = document.createElement("div");
                 textPathSentimentPair.className = "textPathPair";
                 textPathSentimentPair.appendChild(textInput);
-                textPathSentimentPair.appendChild(pathSelect);
+                textPathSentimentPair.appendChild(categoryInput);
                 textPathSentimentPair.appendChild(positiveRadio[0]);
                 textPathSentimentPair.appendChild(positiveRadio[1]);
                 textPathSentimentPair.appendChild(negativeRadio[0]);
@@ -350,65 +356,61 @@
                 textPathSentimentPair.appendChild(suggestionsRadio[1]);
                 textPathSentimentPair.appendChild(deleteButton);
                 document.getElementById("textPathPairs").appendChild(textPathSentimentPair);
+
+                // Store the current category input element
+                currentCategoryInput = categoryInput;
+
+                // Initialize jstree for category selection
+                $('#categoryTree').jstree({
+                    'core': {
+                        'data': categoryTree
+                    }
+                }).on('changed.jstree', function (e, data) {
+                    // Handle node selection here
+                    var selectedNode = data.instance.get_node(data.selected[0]);
+                    currentCategoryInput.value = selectedNode.text;
+                    currentCategoryInput.setAttribute("data-path", data.instance.get_path(selectedNode, "/"));
+                });
+
+                // Open the jstree dialog for category selection
+                $('#categoryTree').jstree('open_all');
             } else {
                 alert("Please select text to annotate first.");
             }
         }
 
-        function createSentimentRadio(value) {
+        function createSentimentRadio(value, categoryId) {
             const radio = document.createElement("input");
             radio.type = "radio";
-            radio.name = "sentiment";
+            radio.name = "sentiment_" + categoryId; // Unique radio group for each categoryInput
             radio.value = value;
             radio.className = "sentimentRadio";
-            radio.id = value + "Radio";
+            radio.id = value + "Radio_" + categoryId;
 
             const label = document.createElement("label");
             label.textContent = value.charAt(0).toUpperCase() + value.slice(1);
-            label.setAttribute("for", value + "Radio");
+            label.setAttribute("for", value + "Radio_" + categoryId);
 
             return [radio, label];
         }
 
         document.getElementById("annotateSelection").addEventListener("click", annotateSelectedText);
 
-        function populateDropdown(select, data, parentPath = []) {
-            for (const item of data) {
-                const currentPath = [...parentPath, item.text];
-                if (item.text) {
-                    const option = document.createElement("option");
-                    option.value = currentPath.join('/');
-                    option.text = currentPath[currentPath.length - 1];
-                    select.appendChild(option);
-                }
-                if (item.children) {
-                    populateDropdown(select, item.children, currentPath);
-                }
-            }
-        }
-
         $(function () {
-            $('#categoryTree').jstree({
-                'core': {
-                    'data': categoryTree
-                }
-            }).on('changed.jstree', function (e, data) {
-                var selectedNode = data.instance.get_node(data.selected[0]);
-                console.log('Selected Node: ' + selectedNode.text);
-            });
-
             $('#updateJson').on('click', function () {
                 const sentence = $('#inputSentence').val();
                 const textPathSentimentPairs = [];
 
                 $('.textPathPair').each(function () {
                     const text = $(this).find('.textInput').val();
-                    const path = $(this).find('.pathSelect').val();
-                    const sentiment = $(this).find('input[name="sentiment"]:checked').val();
+                    const category = $(this).find('.categoryInput').val();
+                    const categoryPath = $(this).find('.categoryInput').data('path');
+                    const sentiment = $(this).find('input[name^="sentiment"]:checked').val();
 
                     textPathSentimentPairs.push({
                         text: text,
-                        path: path,
+                        category: category,
+                        categoryPath: categoryPath,
                         sentiment: sentiment
                     });
                 });
