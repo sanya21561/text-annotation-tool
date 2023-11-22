@@ -38,11 +38,24 @@
             width: 300px;
         }
 
-        .sentimentSelect {
-            width: 100px;
+        .sentimentRadio {
+            margin-right: 5px;
         }
 
-        #addTextPathPair {
+        .deleteButton {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .deleteButton:hover {
+            background-color: #c9302c;
+        }
+
+        #updateJson {
             padding: 5px 10px;
             background-color: #0074D9;
             color: white;
@@ -50,7 +63,19 @@
             cursor: pointer;
         }
 
-        #addTextPathPair:hover {
+        #updateJson:hover {
+            background-color: #0056b3;
+        }
+
+        #annotateSelection {
+            padding: 5px 10px;
+            background-color: #0074D9;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #annotateSelection:hover {
             background-color: #0056b3;
         }
     </style>
@@ -61,11 +86,13 @@
     <div id="textPathPairs">
         <!-- Text-Path-Sentiment Pairs will be added here -->
     </div>
-    <button id="addTextPathPair">Add Text</button>
+    <div>
+        <button id="annotateSelection">Annotate Selection</button>
+    </div>
     <button id="updateJson">Save</button>
 
     <script>
-        const categoryTree = [
+                const categoryTree = [
     {
         "text": "Structure",
         "children": [
@@ -288,38 +315,62 @@
     }
 ];
 
-        function createTextPathSentimentPair() {
-            const textPathSentimentPair = document.createElement("div");
-            textPathSentimentPair.className = "textPathPair";
+        function annotateSelectedText() {
+            const selectedText = window.getSelection().toString().trim();
+            if (selectedText !== "") {
+                const textInput = document.createElement("input");
+                textInput.className = "textInput";
+                textInput.value = selectedText;
 
-            const textInput = document.createElement("input");
-            textInput.className = "textInput";
-            textInput.placeholder = "Enter Text";
+                const pathSelect = document.createElement("select");
+                pathSelect.className = "pathSelect";
+                populateDropdown(pathSelect, categoryTree);
 
-            const pathSelect = document.createElement("select");
-            pathSelect.className = "pathSelect";
+                const positiveRadio = createSentimentRadio("positive");
+                const negativeRadio = createSentimentRadio("negative");
+                const suggestionsRadio = createSentimentRadio("suggestions");
 
-            // Call the function to populate the dropdown with all levels, including leaf nodes
-            populateDropdown(pathSelect, categoryTree);
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "deleteButton";
+                deleteButton.textContent = "Delete";
+                deleteButton.onclick = function () {
+                    // Remove the parent div when the delete button is clicked
+                    this.parentElement.remove();
+                };
 
-            const sentimentSelect = document.createElement("select");
-            sentimentSelect.className = "sentimentSelect";
-            const sentimentOptions = ["positive", "negative", "suggestions"];
-
-            // Populate the sentimentSelect dropdown with sentiment options
-            for (const sentiment of sentimentOptions) {
-                const option = document.createElement("option");
-                option.value = sentiment;
-                option.text = sentiment;
-                sentimentSelect.appendChild(option);
+                const textPathSentimentPair = document.createElement("div");
+                textPathSentimentPair.className = "textPathPair";
+                textPathSentimentPair.appendChild(textInput);
+                textPathSentimentPair.appendChild(pathSelect);
+                textPathSentimentPair.appendChild(positiveRadio[0]);
+                textPathSentimentPair.appendChild(positiveRadio[1]);
+                textPathSentimentPair.appendChild(negativeRadio[0]);
+                textPathSentimentPair.appendChild(negativeRadio[1]);
+                textPathSentimentPair.appendChild(suggestionsRadio[0]);
+                textPathSentimentPair.appendChild(suggestionsRadio[1]);
+                textPathSentimentPair.appendChild(deleteButton);
+                document.getElementById("textPathPairs").appendChild(textPathSentimentPair);
+            } else {
+                alert("Please select text to annotate first.");
             }
-
-            textPathSentimentPair.appendChild(textInput);
-            textPathSentimentPair.appendChild(pathSelect);
-            textPathSentimentPair.appendChild(sentimentSelect);
-
-            document.getElementById("textPathPairs").appendChild(textPathSentimentPair);
         }
+
+        function createSentimentRadio(value) {
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "sentiment";
+            radio.value = value;
+            radio.className = "sentimentRadio";
+            radio.id = value + "Radio";
+
+            const label = document.createElement("label");
+            label.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+            label.setAttribute("for", value + "Radio");
+
+            return [radio, label];
+        }
+
+        document.getElementById("annotateSelection").addEventListener("click", annotateSelectedText);
 
         function populateDropdown(select, data, parentPath = []) {
             for (const item of data) {
@@ -327,7 +378,7 @@
                 if (item.text) {
                     const option = document.createElement("option");
                     option.value = currentPath.join('/');
-                    option.text = currentPath[currentPath.length - 1]; // Display the current node's name
+                    option.text = currentPath[currentPath.length - 1];
                     select.appendChild(option);
                 }
                 if (item.children) {
@@ -336,33 +387,24 @@
             }
         }
 
-        // Call the createTextPathSentimentPair function to initialize the form
-        createTextPathSentimentPair();
-
         $(function () {
             $('#categoryTree').jstree({
                 'core': {
                     'data': categoryTree
                 }
             }).on('changed.jstree', function (e, data) {
-                // Handle node selection here
                 var selectedNode = data.instance.get_node(data.selected[0]);
                 console.log('Selected Node: ' + selectedNode.text);
-            });
-
-            $('#addTextPathPair').on('click', function () {
-                createTextPathSentimentPair();
             });
 
             $('#updateJson').on('click', function () {
                 const sentence = $('#inputSentence').val();
                 const textPathSentimentPairs = [];
 
-                // Iterate through textPathSentimentPairs and add them to the array
                 $('.textPathPair').each(function () {
                     const text = $(this).find('.textInput').val();
                     const path = $(this).find('.pathSelect').val();
-                    const sentiment = $(this).find('.sentimentSelect').val();
+                    const sentiment = $(this).find('input[name="sentiment"]:checked').val();
 
                     textPathSentimentPairs.push({
                         text: text,
@@ -371,7 +413,6 @@
                     });
                 });
 
-                // Send a request to the server to save the data
                 $.ajax({
                     type: 'POST',
                     url: '/save_data',
